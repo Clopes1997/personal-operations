@@ -1,6 +1,19 @@
 import { expect, it } from "vitest";
 import { emptySnapshot } from "./domain";
 import { previewLegacy } from "./imports";
+it("preserves partial progress and an hourly custom reward without awarding historical coins", () => {
+  const raw = JSON.stringify({
+    schedule: null, lastPlayedDate: "2026-09-24", wallet: 50,
+    questsToday: [{id: "read", title: "Read", completed: false, durationHours: 1, coinReward: 10, progressRequired: 4, progressCurrent: 2}],
+    shopItems: [], customReward: {id: "custom", title: "Break", cost: 5, cooldownDays: 0,
+      cooldownHours: 2, lastPurchasedDate: "2026-09-24", lastPurchasedAt: "2026-09-24T12:00:00Z"},
+  });
+  const {next} = previewLegacy(emptySnapshot(), "life-rpg", "home", raw, "", "");
+  expect(next.tasks[0]).toMatchObject({progressRequired: 4, progressCurrent: 2, completed: false});
+  expect(next.shop[0]).toMatchObject({title: "Break", cooldownHours: 2, lastPurchasedAt: "2026-09-24T12:00:00Z"});
+  expect(next.rewards.reduce((sum, r) => sum + r.coins, 0)).toBe(50);
+  expect(next.settings.gamification).toBe(false);
+});
 it("preserves variable finance templates without inventing a monthly amount", () => {
   const raw = JSON.stringify({
     version: 1,
