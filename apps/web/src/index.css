@@ -1,0 +1,114 @@
+@import 'tailwindcss';
+
+/* Design tokens from UI blueprint */
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface-raised: #242836;
+  --border: #2e3347;
+  --text: #e4e4e7;
+  --text-muted: #8b8fa3;
+  --accent: #f59e0b;
+  --accent-glow: rgba(251, 191, 36, 0.25);
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --purple: #a855f7;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+/* Category tag colors — distinct shades for quick scanning */
+.category-career { background: rgba(59, 130, 246, 0.22); color: #93c5fd; }
+.category-health { background: rgba(34, 197, 94, 0.22); color: #86efac; }
+.category-skills { background: rgba(6, 182, 212, 0.22); color: #67e8f9; }
+.category-creative { background: rgba(168, 85, 247, 0.22); color: #c4b5fd; }
+.category-daily { background: rgba(245, 158, 11, 0.15); color: #fcd34d; }
+.category-weekly { background: rgba(236, 72, 153, 0.22); color: #f9a8d4; }
+.category-adulting { background: rgba(100, 116, 139, 0.25); color: #94a3b8; }
+
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+.progress-bar-fill {
+  animation: progress-pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+}
+
+@keyframes coin-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.15); }
+  70% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+.quest-coin-pop {
+  animation: coin-pop 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.toast-enter {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes rewardToastEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.reward-toast {
+  animation: rewardToastEnter 0.35s ease forwards;
+}
+
+@keyframes rewardToastPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.reward-toast-pulse {
+  animation: rewardToastPulse 0.3s ease;
+}
+
+.purchase-toast {
+  animation: rewardToastEnter 0.35s ease forwards;
+}
+
+@keyframes day-complete-reveal {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+.day-complete-banner-reveal {
+  opacity: 0;
+  transform: scale(0.92);
+  animation: day-complete-reveal 1.2s ease-out forwards;
+}
+
+/* Header: badge group right when one row, left when wrapped to second row */
+.header-badge-group {
+  margin-left: auto;
+}
+@media (max-width: 609px) {
+  .header-badge-group {
+    margin-left: 0;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
