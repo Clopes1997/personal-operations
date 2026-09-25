@@ -1,5 +1,56 @@
 # Retirement Readiness
 
+## Browser-local retirement acceptance
+
+Install and verify from the repository root:
+
+```bash
+npm run web:install
+npm run migration:test
+npm run web:test
+npm run web:check
+npm run web:build
+npm --prefix apps/web run test:browser
+npm run migration:rehearse -- --snapshot tools/migration/fixtures/personal-source.json --installation synthetic --kind synthetic --out migration-runs/rehearsal-01
+```
+
+The final command returns 2 for a completed but unapproved/synthetic run, 1 for failure.
+Check mandatory evidence separately; exit 2 alone is not a pass:
+
+```bash
+node tools/migration/verify-rehearsal.mjs migration-runs/rehearsal-01/migration-report.json
+```
+
+The browser suite uses installed Chrome locally and Playwright Chromium in CI. On Linux CI,
+install it with `cd apps/web && npx playwright install --with-deps chromium` first.
+Each output directory must be new. It contains private source/export copies and browser
+artifacts as well as migration-report.json and migration-report.md. Do not publish the
+whole directory. No credentials are required. Do not place real backups in Git.
+
+The rehearsal creates an isolated browser profile, restores all modules, downloads a backup,
+verifies the saved file, replaces data with empty state, restores, reloads, and compares actual
+exported records. It tests concurrent stale tabs, corrupted JSON and unsupported versions.
+The unit acceptance suite additionally tests atomic IndexedDB restore and legacy-history
+isolation. Snapshot revisions advance during restoration; they are never rewound.
+
+For an existing consolidated backup, substitute its path, explicit installation ID and
+`--kind real`. The file is copied and fingerprinted read-only. This proves backup reconstruction,
+not reconciliation against unknown original installations. Real-source reconciliation therefore
+remains REQUIRES_REVIEW. Preserve each original JSON/SQLite backup and its mapping decisions;
+review finance totals, variable templates, partial progress, custom rewards and archival-only
+history before approving retirement. Unsupported fields or changed source values block the run.
+
+Back up the entire exported version-1 JSON, including raw source archives. Verify it against
+current data in Backups and keep it outside browser storage. Restore into a separate browser
+profile first. Cutover rollback means restoring that JSON to browser-local storage; there is no
+server/database rollback. Writes made after the backup must be exported before replacement or
+they will be lost. Changing the deployment origin requires export/restore. App-shell offline
+reload is not guaranteed; an already loaded app and its backup functions need no network.
+
+The owner acceptance checklist in each report includes understanding local-only storage and
+backup responsibility, real finance/template/progress/reward reconciliation, and preserved
+archival history. These choices are never inferred from automated test success.
+
 Source → Backup → Isolated restore → Preflight → Migration → Reconciliation → Acceptance tests → Restore/rollback test → Human review → Cutover approval → Source archival
 
 **Passing automated checks does not authorize deletion or archival of the source.**

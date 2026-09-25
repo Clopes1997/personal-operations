@@ -108,6 +108,17 @@ move data. There is no offline app-shell cache or cloud synchronization.
 
 ## Known limitations and retirement gates
 
+Backup health is visible across modules. Export requests are recorded separately from
+verified saved files: in Backups, select the downloaded JSON under **Verify saved backup
+file**. The app validates its format, revision and SHA-256 content identity against current
+data. It cannot detect a later deletion of that external file. Health/preferences are local
+operational metadata, not part of application revisions. Optional reminders can be dismissed
+for a day and never block work. They need no network connection.
+
+**Legacy History** displays read-only source evidence, including historical streak summaries
+and potentially truncated reward history. It never grants rewards or changes active analytics.
+See [Retirement Readiness](RETIREMENT.md) for the tested backup/restore procedure and reports.
+
 This is an integrated target, not an assertion that all legacy installations have migrated.
 Browser-local finance requires the owner's acceptance of backup/durability responsibilities.
 Browser storage is not encrypted and may be removed by the user or browser.

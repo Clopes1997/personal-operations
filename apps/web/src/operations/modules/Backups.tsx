@@ -3,6 +3,8 @@ import { today, type Snapshot } from "../domain";
 import { parseBackup, exportBackup } from "../persistence";
 import { previewLegacy, type ImportPreview } from "../imports";
 import { Field, download, type Props } from "../module-ui";
+import BackupHealth from "../BackupHealth";
+import { readHealth, saveHealth } from "../backup-health";
 export default function Backups({ state, update, safely }: Props) {
   const [preview, setPreview] = useState<Snapshot>();
   const [ack, setAck] = useState(false);
@@ -15,15 +17,17 @@ export default function Backups({ state, update, safely }: Props) {
         current data first.
       </p>
       <button
-        onClick={() =>
+        onClick={() => safely(() => {
           download(
             "personal-operations-" + today() + ".json",
             exportBackup(state),
-          )
-        }
+          );
+          saveHealth({...readHealth(), exportRequestedAt: new Date().toISOString()});
+        })}
       >
         Export all data
       </button>
+      <BackupHealth state={state} controls />
       <Field label="Restore backup file">
         <input
           type="file"

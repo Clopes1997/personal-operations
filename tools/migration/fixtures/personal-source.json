@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "revision": 0,
+  "tasks": [
+    {
+      "id": "schedule:2026-09-25:read",
+      "ruleId": "read",
+      "title": "Synthetic reading",
+      "date": "2026-09-25",
+      "completed": false,
+      "estimatedMinutes": 30,
+      "reward": 10,
+      "progressRequired": 4,
+      "progressCurrent": 2
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan",
+      "title": "Synthetic plan",
+      "start": "2026-09-25",
+      "end": "2026-09-26"
+    }
+  ],
+  "workdays": [
+    {
+      "id": "day",
+      "date": "2026-09-25",
+      "intervals": [
+        [
+          "08:00",
+          "12:00"
+        ],
+        [
+          "13:00",
+          "17:00"
+        ]
+      ],
+      "target": 480,
+      "opening": -45
+    }
+  ],
+  "budgets": [
+    {
+      "id": "month",
+      "month": "2026-09",
+      "currency": "BRL",
+      "salary": 10000,
+      "benefits": 0,
+      "rate": 5000,
+      "expenses": [
+        {
+          "id": "expense",
+          "title": "Utilities",
+          "category": "Home",
+          "cents": 29
+        }
+      ],
+      "contribution": 5000,
+      "free": 4971,
+      "legacy": true
+    }
+  ],
+  "templates": [
+    {
+      "id": "variable",
+      "title": "Utilities",
+      "category": "Home",
+      "cents": 0,
+      "variable": true,
+      "active": true
+    }
+  ],
+  "rewards": [
+    {
+      "id": "opening",
+      "coins": 50,
+      "label": "Synthetic opening wallet",
+      "date": "2026-09-25"
+    }
+  ],
+  "shop": [
+    {
+      "id": "custom",
+      "title": "Synthetic break",
+      "cost": 5,
+      "cooldownDays": 0,
+      "lastDate": "2026-09-25",
+      "cooldownHours": 2,
+      "lastPurchasedAt": "2026-09-25T12:00:00Z"
+    }
+  ],
+  "settings": {
+    "gamification": false,
+    "schedule": null
+  },
+  "archives": [
+    {
+      "id": "life-rpg:synthetic",
+      "source": "life-rpg",
+      "importedAt": "2026-09-25T12:00:00Z",
+      "raw": "{\"schedule\":null,\"lastPlayedDate\":\"2026-09-25\",\"wallet\":50,\"questsToday\":[{\"id\":\"read\",\"title\":\"Synthetic reading\",\"completed\":false,\"durationHours\":0.5,\"coinReward\":10,\"progressRequired\":4,\"progressCurrent\":2}],\"shopItems\":[],\"customReward\":{\"id\":\"custom\",\"title\":\"Synthetic break\",\"cost\":5,\"cooldownDays\":0,\"cooldownHours\":2,\"lastPurchasedDate\":\"2026-09-25\",\"lastPurchasedAt\":\"2026-09-25T12:00:00Z\"},\"streak\":{\"current\":7,\"best\":12},\"rewardHistory\":[{\"id\":\"old\",\"name\":\"Incomplete historical reward\"}],\"stats\":{\"bestStreak\":12},\"streakMilestonesClaimed\":[3,7]}"
+    }
+  ]
+}

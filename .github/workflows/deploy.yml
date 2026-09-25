@@ -1,7 +1,7 @@
 name: Verify and deploy personal operations
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, 'codex/**']
   pull_request:
   workflow_dispatch:
 permissions:
@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Migration report contract tests
-        run: node --test tools/migration/report.test.mjs
+        run: npm run migration:test
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -29,6 +29,23 @@ jobs:
         working-directory: apps/web
       - run: npm run test:browser
         working-directory: apps/web
+      - name: Retirement acceptance rehearsal
+        shell: bash
+        run: |
+          set +e
+          npm run migration:rehearse -- --snapshot tools/migration/fixtures/personal-source.json --installation synthetic --kind synthetic --out migration-runs/ci
+          result=$?
+          test "$result" -eq 2 || exit 1
+          node tools/migration/verify-rehearsal.mjs migration-runs/ci/migration-report.json
+      - name: Preserve safe synthetic reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: personal-migration-report
+          path: |
+            migration-runs/ci/migration-report.json
+            migration-runs/ci/migration-report.md
+          if-no-files-found: error
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name == 'workflow_dispatch'
         with:

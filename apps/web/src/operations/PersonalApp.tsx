@@ -9,6 +9,8 @@ import TimeBalance from "./modules/TimeBalance";
 import Budgets from "./modules/Budgets";
 import Rewards from "./modules/Rewards";
 import Backups from "./modules/Backups";
+import BackupHealth from "./BackupHealth";
+import LegacyHistory from "./modules/LegacyHistory";
 const tabs = [
   "Tasks",
   "Timeline",
@@ -16,6 +18,7 @@ const tabs = [
   "Budget",
   "Rewards",
   "Backups",
+  "Legacy History",
 ] as const;
 type Tab = (typeof tabs)[number];
 export default function PersonalApp() {
@@ -92,6 +95,7 @@ export default function PersonalApp() {
       <header>
         <h1>Personal operations</h1>
         <p>Tasks, plans, time and budgets in this browser.</p>
+        {state && <BackupHealth state={state} />}
       </header>
       <nav aria-label="Modules">
         {tabs.map((t) => (
@@ -137,6 +141,7 @@ export default function PersonalApp() {
           {tab === "Backups" && (
             <Backups state={state} update={update} safely={safely} />
           )}
+          {tab === "Legacy History" && <LegacyHistory state={state} />}
         </fieldset>
       )}
       <footer aria-live="polite">
