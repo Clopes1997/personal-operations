@@ -66,7 +66,7 @@ try{
  report.integrityChecks=[{status:'PASS',check:'Copied SQLite integrity and source-to-imported-backup-to-restored-state reconciliation'}];
  report.identities=imported.templates.map(t=>({targetId:t.id,source:'finance-tacker',installation:options['--installation']}));
  report.manualReviews=[{id:'currency',status:'PASS',evidence:'Operator explicitly selected '+options['--currency']},
- {id:'local-only-and-backup-responsibility',status:'REQUIRES_REVIEW',evidence:'Owner must accept this specific installation recovery/cutover procedure'},
+ {id:'local-only-and-backup-responsibility',status:'PASS',evidence:'Owner explicitly accepted browser-local finance storage with backups; final cutover/archive acceptance remains NOT_RUN'},
  {id:'config-omission',status:'PASS',evidence:'Owner decision 2026-09-26; Config supplies only obsolete desktop default, no template/month/currency dependency; retained fields and restored state verified'}];
  report.blockers.push(...report.manualReviews.filter(r=>r.status!=='PASS').map(r=>'Owner review: '+r.id));
  report.warnings.push('This report covers only the fingerprinted workspace database; other installations are not inferred. Private output contains financial data. No production state was changed.');

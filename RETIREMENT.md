@@ -25,7 +25,7 @@ SQLite with a variable template, decimal edge case, monthly values and archival 
 The discovered workspace finance database was rehearsed with owner-confirmed BRL. Its scope
 is two templates, one intentionally omitted Config row, and zero saved months/expenses/events. It does not
 establish that other Finance Tracker installations are empty. Specific owner acceptance of
-backup responsibility remains explicit in the report; the owner-approved Config omission is separately documented below.
+backup responsibility is recorded as owner-accepted (browser-local storage with backups is acceptable); final cutover/archive approval remains NOT_RUN. The Config omission is documented below.
 
 Install and verify from the repository root:
 
