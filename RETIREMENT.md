@@ -16,16 +16,16 @@ npm run migration:finance -- --database "D:\Backups\finance_tracker.db" --curren
 Replace BRL with the explicitly confirmed source currency and use a stable installation
 identity. Python must be on PATH (or set PYTHON to its executable). The wrapper checks copied
 SQLite integrity, uses the read-only exporter, imports through the actual browser UI, compares
-every template/month/expense and exact totals, preserves Config/Eventos as raw evidence, and
+every template/month/expense and exact totals, intentionally omits unused Config and preserves all other raw evidence, and
 then executes destructive replacement/restore in a fresh disposable browser context.
 Original bytes are fingerprinted again afterward. Both report formats retain the SQLite
 fingerprint and export fingerprint. Real financial files never enter CI; CI creates synthetic
 SQLite with a variable template, decimal edge case, monthly values and archival evidence.
 
 The discovered workspace finance database was rehearsed with owner-confirmed BRL. Its scope
-is two templates, one archived Config row, and zero saved months/expenses/events. It does not
+is two templates, one intentionally omitted Config row, and zero saved months/expenses/events. It does not
 establish that other Finance Tracker installations are empty. Specific owner acceptance of
-backup responsibility and archival-only Config/Eventos remains explicit in the report.
+backup responsibility remains explicit in the report; the owner-approved Config omission is separately documented below.
 
 Install and verify from the repository root:
 
