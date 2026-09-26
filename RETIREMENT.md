@@ -2,6 +2,31 @@
 
 ## Browser-local retirement acceptance
 
+### Direct legacy Finance Tracker rehearsal
+
+For an offline Finance Tracker SQLite backup, the root wrapper performs the complete
+source-to-import-to-restore check. The original file is only read as bytes; SQLite opens
+the copy. Source sidecars cause refusal so an active/WAL database is never mistaken for
+a standalone consistent backup. Close the legacy app and obtain an offline backup first.
+
+```powershell
+npm run migration:finance -- --database "D:\Backups\finance_tracker.db" --currency BRL --installation home-desktop --kind real --out migration-runs/finance-01
+```
+
+Replace BRL with the explicitly confirmed source currency and use a stable installation
+identity. Python must be on PATH (or set PYTHON to its executable). The wrapper checks copied
+SQLite integrity, uses the read-only exporter, imports through the actual browser UI, compares
+every template/month/expense and exact totals, preserves Config/Eventos as raw evidence, and
+then executes destructive replacement/restore in a fresh disposable browser context.
+Original bytes are fingerprinted again afterward. Both report formats retain the SQLite
+fingerprint and export fingerprint. Real financial files never enter CI; CI creates synthetic
+SQLite with a variable template, decimal edge case, monthly values and archival evidence.
+
+The discovered workspace finance database was rehearsed with owner-confirmed BRL. Its scope
+is two templates, one archived Config row, and zero saved months/expenses/events. It does not
+establish that other Finance Tracker installations are empty. Specific owner acceptance of
+backup responsibility and archival-only Config/Eventos remains explicit in the report.
+
 Install and verify from the repository root:
 
 ```bash

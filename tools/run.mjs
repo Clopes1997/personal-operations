@@ -1,8 +1,9 @@
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 const windows=process.platform==='win32'
-if (process.argv[2] === 'migration:rehearse') {
- const result=spawnSync(process.execPath,['tools/migration/rehearse.mjs',...process.argv.slice(3)],{cwd:fileURLToPath(new URL('../',import.meta.url)),stdio:'inherit',shell:false})
+if (process.argv[2] === 'migration:rehearse' || process.argv[2] === 'migration:finance') {
+ const script=process.argv[2] === 'migration:finance'?'tools/migration/finance-rehearse.mjs':'tools/migration/rehearse.mjs'
+ const result=spawnSync(process.execPath,[script,...process.argv.slice(3)],{cwd:fileURLToPath(new URL('../',import.meta.url)),stdio:'inherit',shell:false})
  process.exit(result.status??1)
 }
 if (process.argv[2] === 'migration:inspect' || process.argv[2] === 'migration:test') {

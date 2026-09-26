@@ -119,6 +119,10 @@ for a day and never block work. They need no network connection.
 and potentially truncated reward history. It never grants rewards or changes active analytics.
 See [Retirement Readiness](RETIREMENT.md) for the tested backup/restore procedure and reports.
 
+For a real offline Finance Tracker database, `npm run migration:finance` copies it read-only,
+checks SQLite integrity, imports and reconciles through the browser, then verifies backup/restore.
+See RETIREMENT.md for all required arguments; currency is never inferred.
+
 This is an integrated target, not an assertion that all legacy installations have migrated.
 Browser-local finance requires the owner's acceptance of backup/durability responsibilities.
 Browser storage is not encrypted and may be removed by the user or browser.

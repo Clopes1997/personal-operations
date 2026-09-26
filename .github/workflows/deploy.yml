@@ -37,6 +37,15 @@ jobs:
           result=$?
           test "$result" -eq 2 || exit 1
           node tools/migration/verify-rehearsal.mjs migration-runs/ci/migration-report.json
+      - name: Legacy SQLite finance reconciliation
+        shell: bash
+        run: |
+          python tools/migration/create-finance-fixture.py migration-runs/finance-fixture/source.db
+          set +e
+          npm run migration:finance -- --database migration-runs/finance-fixture/source.db --currency BRL --installation synthetic-finance --kind synthetic --out migration-runs/finance-ci
+          result=$?
+          test "$result" -eq 2 || exit 1
+          node tools/migration/verify-rehearsal.mjs migration-runs/finance-ci/migration-report.json
       - name: Preserve safe synthetic reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -45,6 +54,8 @@ jobs:
           path: |
             migration-runs/ci/migration-report.json
             migration-runs/ci/migration-report.md
+            migration-runs/finance-ci/migration-report.json
+            migration-runs/finance-ci/migration-report.md
           if-no-files-found: error
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name == 'workflow_dispatch'
