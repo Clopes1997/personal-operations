@@ -32,7 +32,7 @@ try{
  const exported=resolve(output,'source-export.json');
  run(python,['tools/export_finance.py',copied,exported]);
  const raw=await readFile(exported),source=JSON.parse(raw);
- report.mappingPolicy={currency:options['--currency'],currencyDecision:'Explicit operator argument',sqliteSha256:report.snapshot.sha256,exportSha256:fingerprint(raw),history:'Config and Eventos preserved as raw archive; no invented active events'};
+ report.mappingPolicy={currency:options['--currency'],currencyDecision:'Explicit operator argument',sqliteSha256:report.snapshot.sha256,exportSha256:fingerprint(raw),history:'Config intentionally omitted (owner 2026-09-26); Eventos and all other source fields retained; original external evidence unchanged'};
  setGate(report,'source_snapshot','PASS',['Original never opened by SQLite; stable byte copy, copied SQLite integrity_check and read-only export passed']);
  const normalized=resolve(output,'imported-backup.json');
  const env={...process.env,FINANCE_SOURCE_EXPORT:exported,FINANCE_SOURCE_CURRENCY:options['--currency'],FINANCE_SOURCE_INSTALLATION:options['--installation'],FINANCE_IMPORT_RESULT:normalized};
@@ -42,10 +42,10 @@ try{
  const result=JSON.parse(run(process.execPath,[resolve(web,'node_modules/@playwright/test/cli.js'),'test','e2e/finance-retirement.spec.ts','--reporter=json','--output',resolve(output,'finance-browser')],env,web));
  if(result.stats.expected!==1||result.stats.unexpected!==0)throw new Error('Real importer acceptance not executed');
  const imported=JSON.parse(await readFile(normalized,'utf8'));
- for(const gate of ['preflight','isolated_target','import','reconciliation'])setGate(report,gate,'PASS',['Real browser legacy importer; every template/month/expense independently compared; raw source archive retained exactly']);
+ for(const gate of ['preflight','isolated_target','import','reconciliation'])setGate(report,gate,'PASS',['Real browser legacy importer; every template/month/expense independently compared; all retained source fields compared exactly; Config omission explicitly verified']);
  report.counts={source:{templates:source.tables.ExpenseTemplates.length,months:source.tables.Meses.length,expenses:source.tables.MonthExpenses.length},
  target:{templates:imported.templates.length,months:imported.budgets.length,expenses:imported.budgets.reduce((n,b)=>n+b.expenses.length,0)}};
- report.automatedTests.push({name:'Finance legacy import, exact template/month/expense values, totals and raw archive visibility',status:'PASS'});
+ report.automatedTests.push({name:'Finance legacy import, exact template/month/expense values, totals, retained archive visibility and intentional Config omission',status:'PASS'});
  stage='backup_restore';
  const child=spawnSync(process.execPath,['tools/migration/rehearse.mjs','--snapshot',normalized,'--installation',options['--installation'],'--kind',options['--kind'],'--out',resolve(output,'backup-rehearsal')],{cwd:root,env,encoding:'utf8',timeout:300000,maxBuffer:16*1024*1024});
  if(child.status!==2)throw new Error('Backup rehearsal failed');
@@ -60,12 +60,14 @@ try{
  report.totals.target.templateDefaultsMinor=imported.templates.reduce((n,t)=>n+BigInt(t.cents),0n).toString();
  report.counts.source.variableTemplates=source.tables.ExpenseTemplates.filter(t=>t.valor_padrao===null).length;
  report.counts.target.variableTemplates=imported.templates.filter(t=>t.variable).length;
+ report.intentionalOmissions=[{entity:'Config',sourceCount:source.tables.Config?.length??0,targetCount:0,decision:'owner-2026-09-26',reason:'Unused desktop default contribution percentage; no active target dependency'}];
+ report.mappingPolicy.intentionalOmissions=report.intentionalOmissions;
  report.automatedTests.push(...nested.automatedTests);
  report.integrityChecks=[{status:'PASS',check:'Copied SQLite integrity and source-to-imported-backup-to-restored-state reconciliation'}];
  report.identities=imported.templates.map(t=>({targetId:t.id,source:'finance-tacker',installation:options['--installation']}));
  report.manualReviews=[{id:'currency',status:'PASS',evidence:'Operator explicitly selected '+options['--currency']},
  {id:'local-only-and-backup-responsibility',status:'REQUIRES_REVIEW',evidence:'Owner must accept this specific installation recovery/cutover procedure'},
- {id:'archival-only-config-events',status:'REQUIRES_REVIEW',evidence:'All Config/Eventos raw evidence preserved; review archival-only semantics before cutover'}];
+ {id:'config-omission',status:'PASS',evidence:'Owner decision 2026-09-26; Config supplies only obsolete desktop default, no template/month/currency dependency; retained fields and restored state verified'}];
  report.blockers.push(...report.manualReviews.filter(r=>r.status!=='PASS').map(r=>'Owner review: '+r.id));
  report.warnings.push('This report covers only the fingerprinted workspace database; other installations are not inferred. Private output contains financial data. No production state was changed.');
  if(options['--kind']==='real')setGate(report,'real_source','PASS',['Actual legacy SQLite copy exercised through importer, exact reconciliation and browser backup/restore']);

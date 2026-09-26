@@ -137,3 +137,6 @@ finance templates require an explicit amount each month; templates and saved mon
 Saved-month edits recalculate totals only after explicit confirmation. Historical
 finance discrepancies, source origins and actual SQLite installations require reconciliation.
 Overnight Timebank work must be split explicitly. No original project has been retired.
+
+
+Retirement scope and owner decisions (2026-09-26) are recorded in [RETIREMENT.md](RETIREMENT.md). Passing automated checks does not authorize deletion or archival of the source.

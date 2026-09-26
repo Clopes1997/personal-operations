@@ -28,7 +28,11 @@ test("real-source acceptance: finance export reconciles before backup rehearsal"
  const saved=info.outputPath("imported-backup.json");await (await pending).saveAs(saved);
  const snapshot=JSON.parse(await readFile(saved,"utf8"));
  expect(snapshot.archives).toHaveLength(1);
- expect(snapshot.archives[0]).toMatchObject({id:"finance-tacker:"+installation,source:"finance-tacker",raw});
+ expect(snapshot.archives[0]).toMatchObject({id:"finance-tacker:"+installation,source:"finance-tacker"});
+ const retained = structuredClone(source); delete retained.tables.Config;
+ if(retained.rowCounts)delete retained.rowCounts.Config;
+ expect(JSON.parse(snapshot.archives[0].raw)).toEqual(retained);
+ expect(snapshot.archives[0].omissions).toEqual(["Config: unused desktop default percentage; owner decision 2026-09-26"]);
  expect(snapshot.templates).toHaveLength(source.tables.ExpenseTemplates.length);
  for(const template of source.tables.ExpenseTemplates){
   expect(snapshot.templates.find((row:{id:string})=>row.id===key("template",template.id))).toEqual({

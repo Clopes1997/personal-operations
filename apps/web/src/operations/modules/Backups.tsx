@@ -84,7 +84,7 @@ export default function Backups({ state, update, safely }: Props) {
             <button
               onClick={() => download(a.id.replace(/:/g, "-") + ".json", a.raw)}
             >
-              Export original source
+              Export retained source evidence
             </button>
           </li>
         ))}

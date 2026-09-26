@@ -84,7 +84,7 @@ Source → Backup → Isolated restore → Preflight → Migration → Reconcili
 
 All projects use version 1 of tools/migration/report.mjs with migration-report.json and migration-report.md outputs. Copies live in each independent monorepo without a cross-repository runtime dependency.
 
-PASS requires evidence. FAIL means a proven failure. REQUIRES_REVIEW means an unresolved semantic decision. NOT_RUN means absent execution evidence. Every mandatory gate must pass against a real source before READY_FOR_OWNER_ACCEPTANCE. Synthetic fixtures never satisfy real_source. Owner acceptance and archival authorization are never inferred. Dirty code blocks readiness.
+PASS requires evidence. FAIL means a proven failure. REQUIRES_REVIEW means an unresolved semantic decision. NOT_RUN means absent execution evidence. Every applicable mandatory gate must pass before READY_FOR_OWNER_ACCEPTANCE. Synthetic fixtures never count as a successful real-source migration. N/A requires the explicit scoped owner decision below; it is neither PASS nor missing evidence. Generic inspection cannot grant exemptions. Owner acceptance and archival authorization are never inferred. Dirty code blocks readiness.
 
 The snapshot command only fingerprints/parses JSON and records unexecuted gates. It is not an import or restore test:
 
@@ -103,4 +103,28 @@ Read source copies only. Use a separate disposable target and unique database na
 
 Rollback freezes writes and restores the compatible database and application version before reopening access. Do not run old code against a new schema. Post-cutover writes require explicit reconciliation; rollback may require downtime and must not silently discard them. Personal rollback uses browser backup restore and revision/stale-tab checks.
 
-Adapters must record currency, units, timestamp interpretation and identity decisions. Never guess timezones, round silently or fuzzy-merge. Missing real snapshots remain NOT_RUN. Generated fixtures are labeled synthetic and cannot establish legacy retirement readiness.
+Adapters must record currency, units, timestamp interpretation and identity decisions. Never guess timezones, round silently or fuzzy-merge. Unresolved real-source requirements remain NOT_RUN. The owner-confirmed Inventory/Fleet proof-of-concept sources are explicitly exempt; generated fixtures remain labeled synthetic.
+
+
+## Finance Config omission � owner decision 2026-09-26
+
+BRL is owner-confirmed for workspace-finance-db. The two expense templates (one variable)
+are active migrated data. Config is intentionally omitted from the application archive,
+not accidentally lost. Legacy config_repository.py and app_service.py use it only as a
+default contribution percentage for newly calculated desktop months. Consolidated
+Budgets.tsx takes the percentage from its form; imports.ts uses each saved month's own
+percentage and stored amounts. Template values come directly from ExpenseTemplates;
+currency is an explicit operator argument. No active target value depends on Config.
+
+The external read-only SQLite export still retains original evidence; only the application's
+retained archive removes tables.Config and rowCounts.Config. Archive omissions are visible
+in Legacy History and survive backup/restore. All other exported fields remain intact.
+Repeat-import equality compares retained evidence: a Config-only change is intentionally
+irrelevant; a changed template/month/event remains a conflict. Existing backups are not
+silently rewritten. The source SQLite is never changed.
+
+Unit tests vary/remove Config, verify fixed/variable templates, explicit BRL and saved-month
+amounts, and reject meaningful changed imports. Browser finance acceptance independently
+compares every retained field and template, then the rehearsal exports, replaces local
+state, restores, reloads and compares the entire reconstructed snapshot including omissions.
+Final owner acceptance of the installation recovery/cutover procedure remains separate.

@@ -20,6 +20,20 @@ export type ImportPreview = {
   warnings: string[];
   alreadyImported: boolean;
 };
+// Owner decision 2026-09-26: the desktop-only default percentage is not an active setting.
+// Retain every other exported field; original SQLite/export stays in operator custody.
+function retainedFinanceEvidence(raw: string): string {
+  const data = row.parse(JSON.parse(raw));
+  const tables = { ...row.parse(data.tables) };
+  delete tables.Config;
+  const retained: Record<string, unknown> = { ...data, tables };
+  if (data.rowCounts !== undefined) {
+    const counts = { ...row.parse(data.rowCounts) };
+    delete counts.Config;
+    retained.rowCounts = counts;
+  }
+  return JSON.stringify(retained);
+}
 export function previewLegacy(
   current: Snapshot,
   source: string,
@@ -33,10 +47,11 @@ export function previewLegacy(
       "Installation ID: 1–64 letters, digits, underscores or hyphens",
     );
   if (raw.length > 10_000_000) throw new Error("Legacy file exceeds 10 MB");
+  const retainedRaw = source === "finance-tacker" ? retainedFinanceEvidence(raw) : raw;
   const archiveId = source + ":" + installation;
   const previous = current.archives.find((a) => a.id === archiveId);
   if (previous) {
-    if (previous.raw !== raw)
+    if ((source === "finance-tacker" ? retainedFinanceEvidence(previous.raw) : previous.raw) !== retainedRaw)
       throw new Error(
         "This installation was already imported with different data. Review a new snapshot manually.",
       );
@@ -177,7 +192,7 @@ export function previewLegacy(
           Meses: z.array(row),
           MonthExpenses: z.array(row),
           ExpenseTemplates: z.array(row),
-          Config: z.array(row),
+          Config: z.array(row).optional(),
           Eventos: z.array(row),
         }),
       })
@@ -245,14 +260,15 @@ export function previewLegacy(
       });
     }
     warnings.push(
-      "Config and Eventos retained in source archive. Imported monthly values are never recomputed.",
+      "Config intentionally omitted under owner decision 2026-09-26: unused desktop default percentage. Eventos and all other exported evidence retained. Imported monthly values are never recomputed.",
     );
   } else throw new Error("Unsupported source");
   next.archives.push({
     id: archiveId,
     source,
     importedAt: new Date().toISOString(),
-    raw,
+    raw: retainedRaw,
+    ...(source === "finance-tacker" ? { omissions: ["Config: unused desktop default percentage; owner decision 2026-09-26"] } : {}),
   });
   return { next: SnapshotSchema.parse(next), warnings, alreadyImported: false };
 }

@@ -14,8 +14,9 @@ export default function LegacyHistory({state}: {state: Snapshot}) {
           <p>Summaries and potentially truncated reward history cannot establish a complete event ledger. No missing events have been invented.</p>
           {["streak", "stats", "streakMilestonesClaimed", "rewardHistory"].map(key => <details key={key}><summary>{key}</summary><pre>{evidence && key in evidence ? JSON.stringify(evidence[key], null, 2) : "Not present in source; unknown."}</pre></details>)}
         </>}
-        <details><summary>Original raw evidence</summary><pre>{archive.raw}</pre></details>
-        <button onClick={() => download(archive.id.replace(/:/g, "-") + ".json", archive.raw)}>Download original evidence</button>
+        {archive.omissions?.map(item => <p key={item}>Intentional omission: {item}</p>)}
+        <details><summary>Retained source evidence</summary><pre>{archive.raw}</pre></details>
+        <button onClick={() => download(archive.id.replace(/:/g, "-") + ".json", archive.raw)}>Download retained evidence</button>
       </article>;
     })}
   </section>;

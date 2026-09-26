@@ -156,6 +156,7 @@ export const SnapshotSchema = z
           source: title,
           importedAt: z.string().datetime(),
           raw: z.string().max(10_000_000),
+          omissions: z.array(z.string().max(500)).max(20).optional(),
         }),
       )
       .max(100),
