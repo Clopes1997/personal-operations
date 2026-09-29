@@ -40,4 +40,24 @@ Browser tests use isolated profiles and an installed Chrome locally. CI installs
 
 ## Deployment
 
-The app is static. `vercel.json` configures the repository build. The GitHub Pages workflow verifies changes and publishes when manually dispatched. Relative asset paths support a repository subpath. Tabs use the entry URL; no route fallback is required. Changing origins uses a different browser storage area.
+The app is static. `vercel.json` configures the repository build. The GitHub Pages workflow verifies changes and publishes from main on push or manual dispatch. Relative asset paths support a repository subpath. Tabs use the entry URL; no route fallback is required. Changing origins uses a different browser storage area.
+
+## Public demo (GitHub Pages)
+
+Demo URL after activation: [Personal Operations](https://clopes1997.github.io/personal-operations/). Pages was disabled when checked on 2026-09-29; this URL is not yet verified live.
+
+Deploy from `main` using GitHub Actions. No separate demo branch or duplicated application is needed. This is the full static application; the existing optional Vercel configuration is retained, but Pages is the canonical recommendation.
+
+From the repository root:
+
+```sh
+npm --prefix apps/web ci
+npm --prefix apps/web run build
+npm --prefix apps/web run preview
+```
+
+Output: `apps/web/dist`. No demo secrets or environment variables are required.
+
+Activation: commit and push these changes to main, choose **Settings → Pages → Source → GitHub Actions**, then run the Verify and deploy personal operations workflow on main. Subsequent main pushes deploy automatically; pull requests only verify. Confirm the successful deployment URL before marking the project Live on the portfolio.
+
+Maintenance: Data stays in this browser and origin; no cloud sync. Clearing browser storage deletes it. Keep this origin stable to preserve access to saved data. GitHub Pages project paths share an origin; browser-local data is not a cloud backup. No server-side routing fallback is required. Relative demo assets work under the repository subpath.

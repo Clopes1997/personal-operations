@@ -6,6 +6,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -24,11 +27,11 @@ jobs:
       - run: npm run test:browser
         working-directory: apps/web
       - uses: actions/upload-pages-artifact@v3
-        if: github.event_name == 'workflow_dispatch'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
           path: apps/web/dist
   deploy:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: verify
     runs-on: ubuntu-latest
     permissions:
@@ -38,5 +41,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/configure-pages@v5
       - uses: actions/deploy-pages@v4
         id: deployment
