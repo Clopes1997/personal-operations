@@ -1,9 +1,11 @@
-import { useState, useRef, type FormEvent } from "react";
-import { today, assignLanes, dayNumber, shiftDate, type Plan } from "../domain";
+import { useState, type FormEvent } from "react";
+import { today, assignLanes, dayNumber, type Plan } from "../domain";
+import { DateInput } from "../DateInput";
+import { formatDate } from "../calendar";
+import { timelineEntries, moveTimelineEntry, type TimelineEntry } from "../timeline";
 import { Field, text, uid, type Props } from "../module-ui";
 export default function Timeline({ state, update, safely }: Props) {
   const [editing, setEditing] = useState<Plan>();
-  const dragStart = useRef<number | null>(null);
   function save(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget,
@@ -23,51 +25,38 @@ export default function Timeline({ state, update, safely }: Props) {
       form.reset();
     });
   }
-  const lanes = assignLanes(state.plans);
-  const start = state.plans.length
-    ? Math.min(...state.plans.map((p) => dayNumber(p.start)))
+  const entries = timelineEntries(state);
+  const lanes = assignLanes(entries);
+  const start = entries.length
+    ? Math.min(...entries.map((p) => dayNumber(p.start)))
     : dayNumber(today());
-  const span = state.plans.length
-    ? Math.max(...state.plans.map((p) => dayNumber(p.end))) - start + 1
+  const span = entries.length
+    ? Math.max(...entries.map((p) => dayNumber(p.end))) - start + 1
     : 1;
-  const move = (p: Plan, days: number) =>
-    safely(() =>
-      update((s) => ({
-        ...s,
-        plans: s.plans.map((x) =>
-          x.id === p.id
-            ? {
-                ...x,
-                start: shiftDate(x.start, days),
-                end: shiftDate(x.end, days),
-              }
-            : x,
-        ),
-      })),
-    );
+  const dayWidth = 160;
+  const canvasWidth = Math.max(800, span * dayWidth);
+  const tickStep = Math.max(1, Math.ceil(span / 500));
+  const move = (p: TimelineEntry, days: number) => safely(() => update(s => moveTimelineEntry(s, p, days)));
   return (
     <section>
       <h2>Timeline</h2>
       <p>
-        Inclusive calendar dates. Drag a bar to move it; the arrow buttons
-        provide the same action without dragging.
+        Dated tasks appear automatically, including completed and scheduled tasks. Undated tasks stay in Tasks. Use the arrow buttons to move an item by one day; edit task details in Tasks.
       </p>
       <form key={editing?.id ?? "new"} onSubmit={save}>
         <Field label="Plan title">
           <input name="title" required defaultValue={editing?.title} />
         </Field>
         <Field label="Start">
-          <input
+          <DateInput
             name="start"
-            type="date"
             required
             defaultValue={editing?.start ?? today()}
           />
         </Field>
         <Field label="End">
-          <input
+          <DateInput
             name="end"
-            type="date"
             required
             defaultValue={editing?.end ?? today()}
           />
@@ -79,47 +68,37 @@ export default function Timeline({ state, update, safely }: Props) {
           </button>
         )}
       </form>
-      <div className="ops-timeline">
+      {!entries.length && <p>No plans yet. Add a plan to start your timeline.</p>}
+      <div className="ops-timeline" role="region" aria-label="Plan calendar" tabIndex={0}>
+        <div style={{ width: canvasWidth }}>
+        <div className="ops-axis">
+          {Array.from({ length: Math.ceil(span / tickStep) }, (_, i) => i * tickStep).map(day =>
+            <span key={day} style={{ left: day * dayWidth }}>{formatDate(new Date((start + day) * 86400000).toISOString().slice(0, 10))}</span>
+          )}
+        </div>
         {lanes.map((lane, i) => (
           <div className="ops-lane" key={i}>
-            {lane.map((p) => (
+            {(lane as TimelineEntry[]).map((p) => (
               <div
                 className="ops-bar"
                 key={p.id}
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData("text/plain", p.id);
-                  dragStart.current = e.clientX;
-                }}
-                onDragEnd={(e) => {
-                  const width = e.currentTarget.parentElement?.clientWidth ?? 1;
-                  const original = dragStart.current;
-                  dragStart.current = null;
-                  if (original !== null && e.clientX)
-                    move(
-                      p,
-                      Math.round(((e.clientX - original) * span) / width),
-                    );
-                }}
                 style={{
-                  left: ((dayNumber(p.start) - start) / span) * 100 + "%",
-                  width:
-                    ((dayNumber(p.end) - dayNumber(p.start) + 1) / span) * 100 +
-                    "%",
+                  left: (dayNumber(p.start) - start) * dayWidth,
+                  width: (dayNumber(p.end) - dayNumber(p.start) + 1) * dayWidth - 8,
                 }}
               >
-                <button onClick={() => setEditing(p)}>{p.title}</button>
+                {p.kind === "plan" ? <button className="ops-plan-title" title={p.title} onClick={() => setEditing({ ...p, id: p.sourceId })}>{p.title}</button> : <span className="ops-plan-title" title={p.title}>Task: {p.title}{p.completed ? " ✓" : ""}</span>}
                 <small>
-                  {p.start} — {p.end}
+                  {formatDate(p.start)} — {formatDate(p.end)}
                 </small>
                 <button
-                  aria-label={"Move " + p.title + " back one day"}
+                  aria-label={"Move " + (p.kind === "task" ? "task " : "") + p.title + " back one day"}
                   onClick={() => move(p, -1)}
                 >
                   ←
                 </button>
                 <button
-                  aria-label={"Move " + p.title + " forward one day"}
+                  aria-label={"Move " + (p.kind === "task" ? "task " : "") + p.title + " forward one day"}
                   onClick={() => move(p, 1)}
                 >
                   →
@@ -128,11 +107,13 @@ export default function Timeline({ state, update, safely }: Props) {
             ))}
           </div>
         ))}
+        </div>
       </div>
       <ul>
+        {entries.filter(p => p.kind === "task").map(p => <li key={p.id}>Task: {p.title} · {formatDate(p.start)} · {p.minutes} min · {p.completed ? "Completed" : "Open"}</li>)}
         {state.plans.map((p) => (
           <li key={p.id}>
-            {p.title}: {p.start} — {p.end}{" "}
+            {p.title}: {formatDate(p.start)} — {formatDate(p.end)}{" "}
             <button onClick={() => setEditing(p)}>Edit</button>
             <button
               onClick={() =>

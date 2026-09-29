@@ -64,7 +64,6 @@ export function writeSnapshot(
     ...input,
     revision: expectedRevision + 1,
   });
-  exportBackup(next); // Never commit a state that exceeds the supported restore-file limit.
   return new Promise((resolve, reject) => {
     const tx = db.transaction(stores, "readwrite");
     let conflict: Error | undefined;
@@ -105,14 +104,4 @@ export function writeSnapshot(
       }
     };
   });
-}
-export function parseBackup(text: string): Snapshot {
-  if (text.length > 20_000_000) throw new Error("Backup exceeds 20 MB");
-  return SnapshotSchema.parse(JSON.parse(text));
-}
-export function exportBackup(state: Snapshot): string {
-  const text = JSON.stringify(SnapshotSchema.parse(state), null, 2);
-  if (new TextEncoder().encode(text).byteLength > 20_000_000)
-    throw new Error("Data exceeds the 20 MB backup/restore limit");
-  return text;
 }

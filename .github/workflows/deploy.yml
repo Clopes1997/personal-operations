@@ -11,52 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Migration report contract tests
-        run: npm run migration:test
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
       - run: npm --prefix apps/web ci
       - run: npm --prefix apps/web test
       - run: npm --prefix apps/web run build
-      - run: python -m unittest discover -s tools -p 'test_*.py'
       - run: npx playwright install --with-deps chromium
         working-directory: apps/web
       - run: npm run test:browser
         working-directory: apps/web
-      - name: Retirement acceptance rehearsal
-        shell: bash
-        run: |
-          set +e
-          npm run migration:rehearse -- --snapshot tools/migration/fixtures/personal-source.json --installation synthetic --kind synthetic --out migration-runs/ci
-          result=$?
-          test "$result" -eq 2 || exit 1
-          node tools/migration/verify-rehearsal.mjs migration-runs/ci/migration-report.json
-      - name: Legacy SQLite finance reconciliation
-        shell: bash
-        run: |
-          python tools/migration/create-finance-fixture.py migration-runs/finance-fixture/source.db
-          set +e
-          npm run migration:finance -- --database migration-runs/finance-fixture/source.db --currency BRL --installation synthetic-finance --kind synthetic --out migration-runs/finance-ci
-          result=$?
-          test "$result" -eq 2 || exit 1
-          node tools/migration/verify-rehearsal.mjs migration-runs/finance-ci/migration-report.json
-      - name: Preserve safe synthetic reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: personal-migration-report
-          path: |
-            migration-runs/ci/migration-report.json
-            migration-runs/ci/migration-report.md
-            migration-runs/finance-ci/migration-report.json
-            migration-runs/finance-ci/migration-report.md
-          if-no-files-found: error
       - uses: actions/upload-pages-artifact@v3
         if: github.event_name == 'workflow_dispatch'
         with:

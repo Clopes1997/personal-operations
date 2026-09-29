@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { ScheduleWizard } from "../../components/ScheduleWizard";
 import { today, generateOccurrences, completeTask } from "../domain";
+import { DateInput } from "../DateInput";
 import { Field, text, uid, type Props } from "../module-ui";
 export default function Tasks({ state, update, safely }: Props) {
   const [wizard, setWizard] = useState(false);
@@ -20,7 +21,6 @@ export default function Tasks({ state, update, safely }: Props) {
             date,
             completed: false,
             estimatedMinutes: Number(text(data, "minutes")),
-            reward: 10,
           },
         ],
       }));
@@ -31,13 +31,13 @@ export default function Tasks({ state, update, safely }: Props) {
     <section>
       <h2>Tasks and schedules</h2>
       <Field label="Task date">
-        <input
-          type="date"
+        <DateInput
+          form="task-form"
           value={date}
-          onChange={(e) => setDate(e.target.value)}
+          onChange={setDate}
         />
       </Field>
-      <form onSubmit={add}>
+      <form id="task-form" onSubmit={add}>
         <Field label="Task title">
           <input name="title" required maxLength={500} />
         </Field>
@@ -108,11 +108,9 @@ export default function Tasks({ state, update, safely }: Props) {
                     <input name="title" defaultValue={t.title} required />
                   </Field>
                   <Field label="Revised task date">
-                    <input
+                    <DateInput
                       name="date"
-                      type="date"
                       defaultValue={t.date}
-                      required
                     />
                   </Field>
                   <Field label="Revised estimated minutes">

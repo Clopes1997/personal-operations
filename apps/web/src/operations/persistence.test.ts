@@ -1,10 +1,8 @@
 import "fake-indexeddb/auto";
 import { describe, expect, it, vi } from "vitest";
-import { emptySnapshot } from "./domain";
+import { emptySnapshot, SnapshotSchema } from "./domain";
 import {
-  exportBackup,
   openDatabase,
-  parseBackup,
   readSnapshot,
   writeSnapshot,
 } from "./persistence";
@@ -31,9 +29,10 @@ describe("transactional personal storage", () => {
     expect(await readSnapshot(db)).toEqual(saved);
     db.close();
   });
-  it("restores all module records into a clean database", async () => {
+  it("persists module records across database connections", async () => {
     const db = await openDatabase(crypto.randomUUID());
     const initial = emptySnapshot();
+    initial.archives.push({ id: "existing", source: "old-app", importedAt: "2026-01-01T00:00:00.000Z", raw: "{}" });
     initial.tasks.push({
       id: "task",
       title: "Saved",
@@ -44,11 +43,11 @@ describe("transactional personal storage", () => {
     });
     const saved = await writeSnapshot(db, initial, 0);
     expect(await readSnapshot(db)).toEqual(saved);
-    const clean = await openDatabase(crypto.randomUUID());
-    await writeSnapshot(clean, parseBackup(exportBackup(saved)), 0);
-    expect((await readSnapshot(clean)).tasks).toEqual(saved.tasks);
+    const name = db.name;
     db.close();
-    clean.close();
+    const reopened = await openDatabase(name);
+    expect(await readSnapshot(reopened)).toEqual(saved);
+    reopened.close();
   });
   it("rejects stale tabs and leaves the winning transaction intact", async () => {
     const db = await openDatabase(crypto.randomUUID());
@@ -60,10 +59,10 @@ describe("transactional personal storage", () => {
     expect(await readSnapshot(db)).toEqual(winner);
     db.close();
   });
-  it("rejects corrupt backups before writing", async () => {
+  it("rejects invalid snapshots before writing", async () => {
     const db = await openDatabase(crypto.randomUUID());
     await writeSnapshot(db, emptySnapshot(), 0);
-    expect(() => parseBackup('{"version":99}')).toThrow();
+    expect(() => SnapshotSchema.parse({ version: 99 })).toThrow();
     const duplicate = emptySnapshot();
     duplicate.tasks = [
       {
@@ -76,7 +75,7 @@ describe("transactional personal storage", () => {
       },
     ];
     duplicate.tasks.push({ ...duplicate.tasks[0] });
-    expect(() => parseBackup(JSON.stringify(duplicate))).toThrow("Duplicate");
+    expect(() => writeSnapshot(db, duplicate, 1)).toThrow("Duplicate");
     expect((await readSnapshot(db)).revision).toBe(1);
     db.close();
   });

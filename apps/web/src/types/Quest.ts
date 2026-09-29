@@ -13,7 +13,6 @@ export interface Quest {
   category: string
   progressRequired: number
   progressCurrent: number
-  coinReward: number
   required: boolean
   completed: boolean
   /** Optional, in hours; used to show time value on card (e.g. 0.25 → "15 min"). */

@@ -16,8 +16,6 @@ export interface WizardBlock {
   timeOfDay: TimeOfDay
   /** Category tag (e.g. Career, Health). Default derived from title if not set. */
   category?: QuestCategory | string
-  /** Coin reward on completion; default 25. */
-  coinReward?: number
   /** Whether progress can be split (e.g. 2h job hunting in chunks). Default true. */
   repeatable?: boolean
 }
@@ -30,7 +28,6 @@ export interface WizardWeeklyEvent {
   day: number
   /** User-facing duration: e.g. "60", "1h", "90m". Parsed when building schedule. */
   duration: string
-  coinReward: number
 }
 
 /**
@@ -42,7 +39,7 @@ export interface ScheduleWizardAnswers {
   sleepTarget: string
   /** Daily quests; each has its own timeOfDay and duration. */
   blocks: WizardBlock[]
-  /** Block IDs (derived from block titles) that keep streak alive. */
+  /** Block IDs (derived from block titles) marked as priority tasks. */
   priorityIds: string[]
   weeklyEvents: WizardWeeklyEvent[]
 }

@@ -7,18 +7,13 @@ import Tasks from "./modules/Tasks";
 import Timeline from "./modules/Timeline";
 import TimeBalance from "./modules/TimeBalance";
 import Budgets from "./modules/Budgets";
-import Rewards from "./modules/Rewards";
-import Backups from "./modules/Backups";
-import BackupHealth from "./BackupHealth";
-import LegacyHistory from "./modules/LegacyHistory";
+import TimeCalculator from "./modules/TimeCalculator";
 const tabs = [
   "Tasks",
   "Timeline",
-  "Time balance",
+  "Timebank",
   "Budget",
-  "Rewards",
-  "Backups",
-  "Legacy History",
+  "Time Calculator",
 ] as const;
 type Tab = (typeof tabs)[number];
 export default function PersonalApp() {
@@ -92,22 +87,23 @@ export default function PersonalApp() {
   };
   return (
     <div className="operations">
+      <aside className="ops-sidebar">
+        <div className="ops-brand"><span>PO</span>Personal operations</div>
+        <p className="ops-menu-label">Workspace</p>
+        <nav aria-label="Modules">
+          {tabs.map((t) => <button key={t} aria-current={tab === t ? "page" : undefined} onClick={() => setTab(t)}>{t}</button>)}
+        </nav>
+      </aside>
+      <main className="ops-main">
       <header>
         <h1>Personal operations</h1>
         <p>Tasks, plans, time and budgets in this browser.</p>
-        {state && <BackupHealth state={state} />}
       </header>
-      <nav aria-label="Modules">
-        {tabs.map((t) => (
-          <button
-            key={t}
-            aria-current={tab === t ? "page" : undefined}
-            onClick={() => setTab(t)}
-          >
-            {t}
-          </button>
-        ))}
-      </nav>
+      {state && <div className="ops-stats" aria-label="Workspace overview">
+        <div><span>Open tasks</span><strong>{state.tasks.filter(t => !t.completed).length}</strong></div>
+        <div><span>Scheduled plans</span><strong>{state.plans.length}</strong></div>
+        <div><span>Completed tasks</span><strong>{state.tasks.filter(t => t.completed).length}</strong></div>
+      </div>}
       {error && (
         <p role="alert">
           {error}{" "}
@@ -129,25 +125,21 @@ export default function PersonalApp() {
           {tab === "Timeline" && (
             <Timeline state={state} update={update} safely={safely} />
           )}
-          {tab === "Time balance" && (
+          {tab === "Timebank" && (
             <TimeBalance state={state} update={update} safely={safely} />
           )}
           {tab === "Budget" && (
             <Budgets state={state} update={update} safely={safely} />
           )}
-          {tab === "Rewards" && (
-            <Rewards state={state} update={update} safely={safely} />
+          {tab === "Time Calculator" && (
+            <TimeCalculator />
           )}
-          {tab === "Backups" && (
-            <Backups state={state} update={update} safely={safely} />
-          )}
-          {tab === "Legacy History" && <LegacyHistory state={state} />}
         </fieldset>
       )}
       <footer aria-live="polite">
-        {busy ? "Saving…" : state ? "Saved revision " + state.revision : ""} ·
-        Export backups regularly. Browser storage is not cloud backup.
+        {busy ? "Saving…" : state ? "Saved revision " + state.revision : ""}
       </footer>
+      </main>
     </div>
   );
 }

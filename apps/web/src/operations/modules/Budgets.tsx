@@ -6,8 +6,11 @@ import {
   budgetCalculation,
   type Budget,
 } from "../domain";
+import { MonthInput } from "../MonthInput";
 import { Field, text, uid, download, type Props } from "../module-ui";
 export default function Budgets({ state, update, safely }: Props) {
+  const [variable, setVariable] = useState(false);
+  const [variableEdits, setVariableEdits] = useState<Record<string, boolean>>({});
   const [preview, setPreview] = useState<Budget>();
   const [selected, setSelected] = useState<Budget>();
   function calculate(e: FormEvent<HTMLFormElement>) {
@@ -80,6 +83,7 @@ export default function Budgets({ state, update, safely }: Props) {
               ],
             }));
             f.reset();
+            setVariable(false);
           });
         }}
       >
@@ -90,10 +94,10 @@ export default function Budgets({ state, update, safely }: Props) {
           <input name="category" defaultValue="General" />
         </Field>
         <Field label="Default amount">
-          <input name="value" inputMode="decimal" defaultValue="0" required />
+          <input name="value" inputMode="decimal" defaultValue="0" disabled={variable} required={!variable} />
         </Field>
         <label>
-          <input name="variable" type="checkbox" />
+          <input name="variable" type="checkbox" checked={variable} onChange={e => setVariable(e.target.checked)} />
           Enter amount each month
         </label>
         <button>Add template</button>
@@ -137,14 +141,16 @@ export default function Budgets({ state, update, safely }: Props) {
                   <input
                     name="value"
                     defaultValue={displayMoney(t.cents)}
-                    required
+                    disabled={variableEdits[t.id] ?? !!t.variable}
+                    required={!(variableEdits[t.id] ?? t.variable)}
                   />
                 </Field>
                 <label>
                   <input
                     name="variable"
                     type="checkbox"
-                    defaultChecked={t.variable}
+                    checked={variableEdits[t.id] ?? !!t.variable}
+                    onChange={e => setVariableEdits(v => ({ ...v, [t.id]: e.target.checked }))}
                   />
                   Variable amount
                 </label>
@@ -181,9 +187,8 @@ export default function Budgets({ state, update, safely }: Props) {
             </Field>
           ))}
         <Field label="Month">
-          <input
+          <MonthInput
             name="month"
-            type="month"
             required
             defaultValue={today().slice(0, 7)}
           />
@@ -219,7 +224,7 @@ export default function Budgets({ state, update, safely }: Props) {
       {preview && (
         <div role="status">
           <p>
-            {preview.month}: contribution {displayMoney(preview.contribution)},
+            {preview.month.replace("-", "/")}: contribution {displayMoney(preview.contribution)},
             free {displayMoney(preview.free)} {preview.currency}
           </p>
           <button
@@ -243,15 +248,14 @@ export default function Budgets({ state, update, safely }: Props) {
       <ul>
         {state.budgets.map((b) => (
           <li key={b.id}>
-            <button onClick={() => setSelected(b)}>{b.month}</button>: free{" "}
+            <button onClick={() => setSelected(b)}>{b.month.replace("-", "/")}</button>: free{" "}
             {displayMoney(b.free)} {b.currency}
-            {b.legacy ? " (legacy snapshot)" : ""}
           </li>
         ))}
       </ul>
       {selected && (
         <div>
-          <h3>{selected.month}</h3>
+          <h3>{selected.month.replace("-", "/")}</h3>
           <details key={selected.id}>
             <summary>Edit saved month</summary>
             <p>

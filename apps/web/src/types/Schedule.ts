@@ -15,7 +15,7 @@ export interface WeekdayBlock {
   title: string
   category: string
   duration: number
-  coinReward: number
+  coinReward?: number
   repeatable: boolean
   /** Optional. When to do this quest; default 'flexible'. */
   timeOfDay?: TimeOfDay
@@ -26,7 +26,7 @@ export interface WeeklyEvent {
   title: string
   day: number
   duration: number
-  coinReward: number
+  coinReward?: number
   /** Optional. When to do this event; default 'flexible'. */
   timeOfDay?: TimeOfDay
 }

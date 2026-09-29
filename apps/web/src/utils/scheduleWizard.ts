@@ -52,7 +52,6 @@ function wizardBlockToWeekdayBlock(block: WizardBlock, index: number): WeekdayBl
     title: block.title.trim() || toTitle(id),
     category: block.category ?? defaultCategory(id),
     duration: durationHours,
-    coinReward: typeof block.coinReward === 'number' ? block.coinReward : 25,
     repeatable: block.repeatable !== false,
     timeOfDay: block.timeOfDay,
   }
@@ -85,7 +84,6 @@ export function buildScheduleFromWizardAnswers(answers: ScheduleWizardAnswers): 
     title: e.title.trim() || `Weekly ${i + 1}`,
     day: e.day,
     duration: Math.max(0.25, parseDurationToMinutes(e.duration ?? '60') / 60),
-    coinReward: typeof e.coinReward === 'number' ? e.coinReward : 25,
     timeOfDay: undefined,
   }))
 

@@ -27,7 +27,7 @@ const WeekdayBlockSchema = z.object({
   title: z.string(),
   category: z.string(),
   duration: z.number(),
-  coinReward: z.number(),
+  coinReward: z.number().optional(),
   repeatable: z.boolean(),
   timeOfDay: TimeOfDaySchema,
 })
@@ -37,7 +37,7 @@ const WeeklyEventSchema = z.object({
   title: z.string(),
   day: z.number().min(0).max(6),
   duration: z.number(),
-  coinReward: z.number(),
+  coinReward: z.number().optional(),
   timeOfDay: TimeOfDaySchema,
 })
 

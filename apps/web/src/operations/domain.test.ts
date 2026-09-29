@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   assignLanes,
-  buyReward,
   budgetCalculation,
   completeTask,
   dayNumber,
@@ -9,7 +8,6 @@ import {
   generateOccurrences,
   money,
   shiftDate,
-  SnapshotSchema,
   suggestedExit,
   workBalance,
 } from "./domain";
@@ -63,50 +61,7 @@ describe("calendar, budget and time rules", () => {
     expect(() => workBalance([["8:00", "12:00"]])).toThrow();
   });
 });
-describe("neutral task occurrences and optional rewards", () => {
-  it("allows repeated purchases without a cooldown and enforces hourly cooldowns across dates", () => {
-    let state = emptySnapshot();
-    state.settings.gamification = true;
-    state.rewards.push({
-      id: "opening",
-      coins: 100,
-      label: "Opening",
-      date: "2026-09-24",
-    });
-    state.shop.push({
-      id: "coffee",
-      title: "Coffee",
-      cost: 10,
-      cooldownDays: 0,
-      lastDate: null,
-    });
-    state = buyReward(
-      state,
-      "coffee",
-      "2026-09-24",
-      new Date("2026-09-24T23:00:00Z"),
-    );
-    state = buyReward(
-      state,
-      "coffee",
-      "2026-09-24",
-      new Date("2026-09-24T23:00:00Z"),
-    );
-    expect(state.rewards.reduce((sum, r) => sum + r.coins, 0)).toBe(80);
-    state.shop[0].cooldownHours = 2;
-    expect(() =>
-      buyReward(
-        state,
-        "coffee",
-        "2026-09-25",
-        new Date("2026-09-25T00:59:59Z"),
-      ),
-    ).toThrow("cooling down");
-    expect(
-      buyReward(state, "coffee", "2026-09-25", new Date("2026-09-25T01:00:00Z"))
-        .rewards,
-    ).toHaveLength(4);
-  });
+describe("task occurrences", () => {
   it("works with rewards disabled and never retroactively awards a completed task", () => {
     let state = emptySnapshot();
     state.tasks.push({
@@ -122,25 +77,6 @@ describe("neutral task occurrences and optional rewards", () => {
     state.settings.gamification = true;
     expect(completeTask(state, "1").rewards).toHaveLength(0);
   });
-  it("awards once even after reopening and reload", () => {
-    let state = emptySnapshot();
-    state.settings.gamification = true;
-    state.tasks.push({
-      id: "1",
-      title: "Work",
-      date: "2026-09-24",
-      completed: false,
-      reward: 10,
-      estimatedMinutes: 30,
-    });
-    state = completeTask(state, "1");
-    state.tasks[0].completed = false;
-    state = completeTask(
-      SnapshotSchema.parse(JSON.parse(JSON.stringify(state))),
-      "1",
-    );
-    expect(state.rewards).toHaveLength(1);
-  });
   it("generates stable IDs without resetting completion", () => {
     const state = emptySnapshot();
     state.settings.schedule = buildScheduleFromWizardAnswers({
@@ -151,7 +87,6 @@ describe("neutral task occurrences and optional rewards", () => {
           title: "Read",
           duration: "30",
           timeOfDay: "flexible",
-          coinReward: 10,
           repeatable: true,
           category: "Skills",
         },

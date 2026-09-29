@@ -42,10 +42,10 @@ const integer = z.number().int().min(0).max(1_000_000_000_000);
 export const TaskSchema = z.object({
   id,
   title,
-  date,
+  date: z.union([date, z.literal("")]),
   completed: z.boolean(),
   estimatedMinutes: z.number().int().min(0).max(1440),
-  reward: z.number().int().min(0).max(100000),
+  reward: z.number().int().min(0).max(100000).optional(),
   ruleId: id.optional(),
   progressRequired: z.number().int().min(1).max(100000).optional(),
   progressCurrent: z.number().int().min(0).max(100000).optional(),
@@ -123,17 +123,14 @@ const ScheduleValidated = z.custom<Schedule>((v) => {
         r.title.trim() &&
         Number.isFinite(r.duration) &&
         r.duration > 0 &&
-        r.duration <= 24 &&
-        Number.isSafeInteger(r.coinReward) &&
-        r.coinReward >= 0 &&
-        r.coinReward <= 100000,
+        r.duration <= 24,
     ) &&
     s.weeklyEvents.every((e) => Number.isInteger(e.day)) &&
     s.weekendRules.minimumHabits.every((key) =>
       s.weekdayBlocks.some((b) => b.id === key),
     )
   );
-}, "Invalid schedule, duplicate IDs, duration or rewards");
+}, "Invalid schedule, duplicate IDs or duration");
 export const SnapshotSchema = z
   .object({
     version: z.literal(1),
@@ -143,10 +140,11 @@ export const SnapshotSchema = z
     workdays: z.array(WorkdaySchema).max(100000),
     budgets: z.array(BudgetSchema).max(2400),
     templates: z.array(TemplateSchema).max(1000),
-    rewards: z.array(RewardSchema).max(100000),
-    shop: z.array(ShopSchema).max(1000),
+    // Version-1 reward fields are inert compatibility data; no active feature reads them.
+    rewards: z.array(RewardSchema).max(100000).default([]),
+    shop: z.array(ShopSchema).max(1000).default([]),
     settings: z.object({
-      gamification: z.boolean(),
+      gamification: z.boolean().optional(),
       schedule: ScheduleValidated.nullable(),
     }),
     archives: z
@@ -201,7 +199,7 @@ export function emptySnapshot(): Snapshot {
     rewards: [],
     shop: [],
     archives: [],
-    settings: { gamification: false, schedule: null },
+    settings: { schedule: null },
   };
 }
 export function money(text: string): number {
@@ -305,7 +303,7 @@ export function generateOccurrences(
 ): Snapshot {
   dayNumber(localDate);
   if (!state.settings.schedule)
-    throw new Error("Create or import a schedule first");
+    throw new Error("Create a schedule first");
   const tasks = [...state.tasks];
   for (const q of generateDailyQuests(state.settings.schedule, localDate)) {
     const key = "schedule:" + localDate + ":" + q.id;
@@ -317,7 +315,6 @@ export function generateOccurrences(
         title: q.title,
         estimatedMinutes: Math.round((q.durationHours ?? 0) * 60),
         completed: false,
-        reward: q.coinReward,
         progressRequired: q.progressRequired,
         progressCurrent: 0,
       });
@@ -327,21 +324,6 @@ export function generateOccurrences(
 export function completeTask(state: Snapshot, taskId: string): Snapshot {
   const task = state.tasks.find((t) => t.id === taskId);
   if (!task) throw new Error("Task not found");
-  const rewards = [...state.rewards];
-  // Completing an already-completed task never retroactively awards coins.
-  if (
-    !task.completed &&
-    state.settings.gamification &&
-    !rewards.some((r) => r.taskId === taskId)
-  ) {
-    rewards.push({
-      id: "task:" + taskId,
-      taskId,
-      coins: task.reward,
-      label: task.title,
-      date: today(),
-    });
-  }
   return SnapshotSchema.parse({
     ...state,
     tasks: state.tasks.map((t) =>
@@ -349,50 +331,5 @@ export function completeTask(state: Snapshot, taskId: string): Snapshot {
         ? { ...t, completed: true, progressCurrent: t.progressRequired ?? 1 }
         : t,
     ),
-    rewards,
-  });
-}
-export function buyReward(
-  state: Snapshot,
-  itemId: string,
-  localDate = today(),
-  now = new Date(),
-): Snapshot {
-  dayNumber(localDate);
-  if (!Number.isFinite(now.getTime())) throw new Error("Invalid purchase time");
-  if (!state.settings.gamification) throw new Error("Rewards are disabled");
-  const item = state.shop.find((i) => i.id === itemId);
-  if (!item) throw new Error("Reward not found");
-  if (
-    item.cooldownHours &&
-    item.lastPurchasedAt &&
-    now.getTime() - Date.parse(item.lastPurchasedAt) <
-      item.cooldownHours * 3600000
-  )
-    throw new Error("Reward is cooling down");
-  if (
-    !item.cooldownHours &&
-    item.lastDate &&
-    dayNumber(localDate) - dayNumber(item.lastDate) < item.cooldownDays
-  )
-    throw new Error("Reward is cooling down");
-  if (state.rewards.reduce((n, r) => n + r.coins, 0) < item.cost)
-    throw new Error("Not enough coins");
-  return SnapshotSchema.parse({
-    ...state,
-    shop: state.shop.map((i) =>
-      i.id === itemId
-        ? { ...i, lastDate: localDate, lastPurchasedAt: now.toISOString() }
-        : i,
-    ),
-    rewards: [
-      ...state.rewards,
-      {
-        id: "purchase:" + crypto.randomUUID(),
-        coins: -item.cost,
-        label: item.title,
-        date: localDate,
-      },
-    ],
   });
 }
